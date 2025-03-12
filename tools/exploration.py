@@ -1,7 +1,7 @@
 from matplotlib import pyplot as plt
 import pandas as pd
 
-from tools.lineplot_tools import plot_vs_time
+from lineplot_tools import plot_vs_time
 
 # df = pd.read_csv('./final_preprocessed_data.csv')
 # plt.plot(df['isoTimestamp'], df['impact'])
