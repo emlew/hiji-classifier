@@ -19,6 +19,7 @@ with open('./impacts.txt', 'r') as file:
                 datetimes = np.append(datetimes, dt)
             except ValueError:
                 print(f"Invalid datetime format: {line}. Skipping.")
+
 impact_times = pd.to_datetime(datetimes)
 
 # Cut out extraneous timestamps from certain files -- combats sensor behavior
