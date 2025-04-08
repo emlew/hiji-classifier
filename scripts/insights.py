@@ -1,17 +1,27 @@
 import itertools
 from matplotlib import pyplot as plt
-import matplotlib.patches as mpatches
 import numpy as np
-import pandas as pd
+
+from scripts.utils import get_patches, type_is_valid
 
 def plot_vs_time(df,type,title):
+    """
+    Create and show plot of all axes of either linear or angular acceleration
+    
+    Parameters:
+    - df: DataFrame with time-series data
+    - type: either rate or accel, specifies which type of acceleration to display
+    - title: title to be displayed on graph
+    """
+    if not type_is_valid(type):
+        print("Incorrect specification of type. Please use either rate or accel.")
+        return
+    
     stds = [np.std(df[i]).round(5) for i in df.columns[:6]]
     max_value = max(map(abs, list(itertools.chain(df[type+'X'], df[type+'Y'], df[type+'Z']))))
     start = min(df['timestamp']+2)
     
-    x_patch = mpatches.Patch(color='tab:blue', label='X')
-    y_patch = mpatches.Patch(color='tab:orange', label='Y')
-    z_patch = mpatches.Patch(color='tab:green', label='Z')
+    x_patch, y_patch, z_patch = get_patches()
 
     fig, axs = plt.subplots(3, 1)
     axs[0].plot(df['isoTimestamp'], df[type+'X'])
@@ -31,17 +41,30 @@ def plot_vs_time(df,type,title):
     fig.suptitle(title, fontsize=16, fontweight='bold')
         
     plt.show()
+    return
     
 def comparison_time_plot(df1,df2,type,title1,title2):
+    """
+    Create and show plot of all axes of either linear or angular acceleration for two datasets
+    
+    Parameters:
+    - df1: DataFrame with time-series data
+    - df2: second DataFrame with time-series data
+    - type: either rate or accel, specifies which type of acceleration to display
+    - title1: title to be displayed above first series of data
+    - title2: title to be displayed above second series of data
+    """
+    if not type_is_valid(type):
+        print("Incorrect specification of type. Please use either rate or accel.")
+        return
+    
     stds1 = [np.std(df1[i]).round(5) for i in df1.columns[:6]]
     stds2 = [np.std(df2[i]).round(5) for i in df2.columns[:6]]
         
     max_value = max(max(map(abs, list(itertools.chain(df1[type+'X'], df1[type+'Y'], df1[type+'Z'])))), 
                     max(map(abs, list(itertools.chain(df2[type+'X'], df2[type+'Y'], df2[type+'Z'])))))  
      
-    x_patch = mpatches.Patch(color='tab:blue', label='X')
-    y_patch = mpatches.Patch(color='tab:orange', label='Y')
-    z_patch = mpatches.Patch(color='tab:green', label='Z')
+    x_patch, y_patch, z_patch = get_patches()
 
     fig, axs = plt.subplots(3, 2)
     axs[0, 0].plot(df1['timestamp'], df1[type+'X'])
@@ -66,15 +89,26 @@ def comparison_time_plot(df1,df2,type,title1,title2):
     for ax in axs.flat:
         ax.label_outer()
         ax.set_ylim([-max_value-1,max_value+1])
-        # ax.set_xticks([])
-        # for impact in impacts:
-        #     ax.axvline(x=impact, color='r', linestyle='--')
 
     fig.legend(handles=[x_patch, y_patch, z_patch], loc='lower center', ncol=3, fontsize=10)
     plt.tight_layout(rect=[0, 0.05, 1, 0.95])
     plt.show()
 
 def comparison_time_plot_centered(df1, df2, type, title1, title2):
+    """
+    Create and show standardized plot of all axes of either linear or angular acceleration for two datasets
+    
+    Parameters:
+    - df1: DataFrame with time-series data
+    - df2: second DataFrame with time-series data
+    - type: either rate or accel, specifies which type of acceleration to display
+    - title1: title to be displayed above first series of data
+    - title2: title to be displayed above second series of data
+    """
+    if not type_is_valid(type):
+        print("Incorrect specification of type. Please use either rate or accel.")
+        return
+    
     # Compute standard deviations
     stds1 = [np.std(df1[i]).round(5) for i in df1.columns[:6]]
     stds2 = [np.std(df2[i]).round(5) for i in df2.columns[:6]]
@@ -92,9 +126,7 @@ def comparison_time_plot_centered(df1, df2, type, title1, title2):
                     max(map(abs, itertools.chain(*df2_centered.values()))))
 
     # Create legend patches
-    x_patch = mpatches.Patch(color='tab:blue', label='X')
-    y_patch = mpatches.Patch(color='tab:orange', label='Y')
-    z_patch = mpatches.Patch(color='tab:green', label='Z')
+    x_patch, y_patch, z_patch = get_patches()
 
     # Create subplots
     fig, axs = plt.subplots(3, 2)
