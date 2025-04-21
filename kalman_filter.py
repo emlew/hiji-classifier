@@ -29,19 +29,79 @@ impact_neck = pd.to_datetime([
   "2025-02-21 20:04:44.130000114+00:00",
   "2025-02-21 20:04:45.819999933+00:00"
 ])
+
+impact_3_2 = pd.to_datetime([
+  "2025-03-03 04:17:38.000000000+00:00",
+  "2025-03-03 04:17:40.000000000+00:00",
+  "2025-03-03 04:17:41.500000000+00:00",
+  "2025-03-03 04:17:43.000000000+00:00",
+  "2025-03-03 04:17:44.000000000+00:00",
+  "2025-03-03 04:17:46.000000000+00:00",
+  "2025-03-03 04:17:48.000000000+00:00",
+  "2025-03-03 04:17:49.500000000+00:00",
+  "2025-03-03 04:17:51.000000000+00:00",
+  "2025-03-03 04:17:52.000000000+00:00",
+])
+
+impact_3_11 = pd.to_datetime([
+  "2025-03-11 22:22:27.000000000+00:00"
+  "2025-03-11 22:22:29.000000000+00:00"
+  "2025-03-11 22:22:30.500000000+00:00"
+  "2025-03-11 22:22:33.000000000+00:00"
+  "2025-03-11 22:22:34.500000000+00:00"
+  "2025-03-11 22:22:36.500000000+00:00"
+  "2025-03-11 22:22:38.500000000+00:00"
+  "2025-03-11 22:22:40.000000000+00:00"
+  "2025-03-11 22:22:42.000000000+00:00"
+  "2025-03-11 22:22:44.000000000+00:00"
+])
 impact_times = []
 
-for pos in positions:
-  df = pd.read_csv(f'data/raw/{pos}.csv')
+data = ["3-2", "3-11"]
+
+# function to match true impact with nearest pred impact
+def match_impacts(pred_times, true_times, tolerance=0.15):
+  matched_true = set()
+  matched_pred = set()
+
+  for i, true_t in enumerate(true_times):
+      for j, pred_t in enumerate(pred_times):
+          if abs((true_t - pred_t).total_seconds()) <= tolerance:
+              matched_true.add(i)
+              matched_pred.add(j)
+              break
+  return len(matched_true), len(pred_times) - len(matched_pred), len(true_times) - len(matched_true)
+
+# function to group impacts into clusters
+def group_impacts(times, window=0.15):
+  if len(times) == 0:
+    return []
+  grouped = [times[0]]
+  for t in times[1:]:
+    if (t - grouped[-1]).total_seconds() > window:
+      grouped.append(t)
+  return grouped
+
+for dataset in data:
+  df = pd.read_csv(f'data/raw/{dataset}.csv')
+# for pos in positions:
+#   df = pd.read_csv(f'data/raw/{pos}.csv')
 
   df['isoTimestamp'] = pd.to_datetime(df['isoTimestamp'])
   df = df.sort_values(by='isoTimestamp')
-  df = df[df['isoTimestamp'].dt.date == pd.to_datetime('2025-02-21').date()]
+  # df = df[df['isoTimestamp'].dt.date == pd.to_datetime('2025-02-21').date()]
 
-  if pos == 'back' or pos == 'side':
-    impact_times = impacts_back_side 
+  # if pos == 'back' or pos == 'side':
+  #   impact_times = impacts_back_side 
+  # else:
+  #   impact_times = impact_neck
+
+  if dataset == "3-2":
+    df = df[df['isoTimestamp'].dt.date == pd.to_datetime('2025-03-03').date()]
+    impact_times = impact_3_2
   else:
-    impact_times = impact_neck
+    df = df[df['isoTimestamp'].dt.date == pd.to_datetime('2025-03-11').date()]
+    impact_times = impact_3_11
   
   start_time = impact_times.min() - pd.Timedelta(seconds=1)
   end_time = impact_times.max() + pd.Timedelta(seconds=1)
@@ -59,12 +119,6 @@ for pos in positions:
   ])
 
   # observation matrix
-  # H = np.array([
-  #     [1, 0, 0, 0, 0, 0],
-  #     [0, 0, 0, 1, 0, 0],
-  #     [0, 1, 0, 0, 0, 0],
-  #     [0, 0, 0, 0, 1, 0]
-  # ])
   H = np.eye(6)
 
   # initial state
@@ -88,7 +142,6 @@ for pos in positions:
       observation_covariance=R
   )
 
-  # observations = df[['accelX', 'accelY', 'rateX', 'rateY']].values
   observations = df[['accelX', 'accelY', 'accelZ', 'rateX', 'rateY', 'rateZ']].values
   timestamps = pd.to_datetime(df['isoTimestamp'])
 
@@ -108,43 +161,56 @@ for pos in positions:
   for i in range(len(observations)):
       mahalanobis_dist[i] = np.sqrt(np.dot(innovations[i], np.dot(np.linalg.inv(S[i]), innovations[i])))
 
-  # detect impacts
-  impact_threshold = 100
   # use rolling window to detect sustained spikes
   rolling_avg = pd.Series(mahalanobis_dist).rolling(window=3, center=True).mean()
-  potential_impacts = rolling_avg > impact_threshold
+  rolling_avg.index = df.index
+  impact_threshold = rolling_avg.mean() + 3 * rolling_avg.std()
+  potential_impacts = (rolling_avg > impact_threshold)
   true_impacts = []
-  if pos == 'back' or pos == 'side':
-    true_impacts = impacts_back_side
+  # if pos == 'back' or pos == 'side':
+  #   true_impacts = impacts_back_side
+  # else:
+  #   true_impacts = impact_neck
+  if dataset == "3-2":
+    true_impacts = impact_3_2
   else:
-    true_impacts = impact_neck
+    true_impacts = impact_3_11
 
   df['true_impact'] = timestamps.apply(
     lambda t: any(abs((t - impact).total_seconds()) <= 0.1 for impact in true_impacts)
   )
   true_impacts = df['true_impact'].values
   
-  true_positives = np.sum(potential_impacts & true_impacts)
-  false_positives = np.sum(potential_impacts & ~true_impacts)
-  false_negatives = np.sum(~potential_impacts & true_impacts)
+  # true_positives = np.sum(potential_impacts & true_impacts)
+  # false_positives = np.sum(potential_impacts & ~true_impacts)
+  # false_negatives = np.sum(~potential_impacts & true_impacts)
+
+  pred_times = df.loc[potential_impacts, 'isoTimestamp']
+  true_times = df.loc[df["true_impact"], 'isoTimestamp']
+
+  grouped_pred_times = group_impacts(sorted(pred_times.tolist()), window=0.1)
+  true_positives, false_positives, false_negatives = match_impacts(
+      grouped_pred_times, true_times, tolerance=0.15)
   
   results.append({
-      'position': pos,
+      # 'position': pos,
+      'dataset': dataset,
       'true_positives': true_positives,
       'false_positives': false_positives,
       'false_negatives': false_negatives
   })
 
-  plt.figure(figsize=(12, 4))
-  plt.plot(timestamps, rolling_avg, label='Mahalanobis')
-  rolling_avg.index = df.index
-  plt.scatter(timestamps[df['true_impact']], rolling_avg[df['true_impact']], color='red', label='True Impacts')
-  plt.axhline(y=impact_threshold, color='green', linestyle='--', label='Threshold')
-  plt.legend()
-  plt.title(f"Mahalanobis Distance - {pos} position")
-  plt.xticks(rotation=45)
-  plt.tight_layout()
-  plt.show()
+  # plt.figure(figsize=(12, 4))
+  # plt.plot(timestamps, rolling_avg, label='Mahalanobis')
+  # rolling_avg.index = df.index
+  # plt.scatter(timestamps[df['true_impact']], rolling_avg[df['true_impact']], color='red', label='True Impacts')
+  # plt.axhline(y=impact_threshold, color='green', linestyle='--', label='Threshold')
+  # plt.legend()
+  # plt.title(f"Mahalanobis Distance - {pos} position")
+  # # plt.title(f"Mahalanobis Distance - {dataset} dataset")
+  # plt.xticks(rotation=45)
+  # plt.tight_layout()
+  # plt.show()
 
 results_df = pd.DataFrame(results)
 results_df['precision'] = results_df['true_positives'] / (
