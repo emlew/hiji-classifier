@@ -40,6 +40,10 @@ def get_interval_binned_data(data_folder,bin_size,aggregates,use_resultant=False
 
     # Process each file separately
     for i, file in enumerate(glob.glob(data_folder)):
+        
+        if file in ['./data/raw/back.csv','./data/raw/neck.csv','./data/raw/side.csv']:
+            continue
+        
         print(f"Processing {file}...")
         
         df = pd.read_csv(file, dtype={"accelX": np.float32, "accelY": np.float32, "accelZ": np.float32, 
