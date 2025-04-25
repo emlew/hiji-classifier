@@ -4,13 +4,10 @@ import pandas as pd
 
 import sys
 import os
-# Get the current file's directory
 current_dir = os.path.dirname(os.path.abspath(__file__))
-# Get the parent directory
 parent_dir = os.path.dirname(current_dir)
-# Add the parent directory to sys.path
 sys.path.append(parent_dir)
-# Now you can import modules from the parent directory
+
 from scripts.processing import get_impacts, get_interval_binned_data, iqr
 
 """
