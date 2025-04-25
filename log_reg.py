@@ -3,7 +3,7 @@ from sklearn.model_selection import GridSearchCV, StratifiedKFold
 from sklearn.linear_model import LogisticRegression
 from tools.train_test import get_split, print_evaluation
 
-X_train, X_test, y_train, y_test = get_split('./final_preprocessed_data.csv')
+X_train, X_test, y_train, y_test = get_split('./final_preprocessed_data.csv',use_alt_preprocessing=False)
 
 # Define hyperparameter grid
 param_grid = {'C': np.logspace(-4, 4, 10)}  # More values from very small to large
@@ -12,10 +12,9 @@ param_grid = {'C': np.logspace(-4, 4, 10)}  # More values from very small to lar
 cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
 # Logistic Regression with Grid Search
-log_reg = LogisticRegression(solver='liblinear', max_iter=1000)
-# grid_search = GridSearchCV(log_reg, param_grid, cv=cv, scoring='accuracy', n_jobs=-1)
-grid_search = GridSearchCV(LogisticRegression(solver='liblinear', class_weight='balanced', max_iter=1000),
-                           param_grid, cv=5, scoring='f1', n_jobs=-1)
+log_reg = LogisticRegression(solver='liblinear', class_weight='balanced', max_iter=1000)
+
+grid_search = GridSearchCV(log_reg, param_grid, cv=cv, scoring='f1', n_jobs=-1)
 
 # Train using cross-validation
 grid_search.fit(X_train, y_train)

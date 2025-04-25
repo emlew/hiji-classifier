@@ -2,6 +2,12 @@ import glob
 import numpy as np
 import pandas as pd
 
+import sys
+import os
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.append(parent_dir)
+
 from scripts.cleanup import enforce_file_bounds
 
 def get_impacts():
@@ -53,7 +59,7 @@ def get_interval_binned_data(data_folder,bin_size,aggregates,use_resultant=False
             df['resLA'] = np.abs(np.sqrt(df['rateX']**2+df['rateY']**2+df['rateZ']**2)) # resultant linear acceleration
             df['resAA'] = np.abs(np.sqrt(df['accelX']**2+df['accelY']**2+df['accelZ']**2)) # resultant angular acceleration
             
-            df.drop(columns=['accelX','accelY','accelZ','rateX','rateY','rateZ'],inplace=True)
+            # df.drop(columns=['accelX','accelY','accelZ','rateX','rateY','rateZ'],inplace=True)
             
         df["isoTimestamp"] = pd.to_datetime(df["isoTimestamp"], utc=True) 
         df = enforce_file_bounds(file, df) 
@@ -100,3 +106,8 @@ def iqr(column):
     :return: size of IQR.
     """
     return column.quantile(0.75) - column.quantile(0.25)
+
+# data_folder = "./data/raw/*.csv"
+# bin_size = "1.5s"
+# aggregates = ["mean", "var", "max", "min", "median", iqr]
+# get_interval_binned_data(data_folder,bin_size,aggregates,False)
