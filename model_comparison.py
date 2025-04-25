@@ -1,42 +1,26 @@
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 from xgboost import XGBClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, f1_score
-from tools.train_test import get_split, get_vars
+from tools.train_test import get_split
 
-use_alt_preprocessing = True
+use_alt_preprocessing = False
 
 df = pd.read_csv('./final_preprocessed_data.csv')
 df = df.replace([np.inf, -np.inf], np.nan).dropna()
-if use_alt_preprocessing:
-    X = df[['resLA_median','resLA_iqr','resAA_median','resAA_iqr']]
-else:
-    X = df[get_vars()]
+
+timestamp_cols = [col for col in df.columns if 'timestamp' in col]
+X = df.drop(columns=timestamp_cols)
+X.drop(columns=['isoTimestamp','impact'],inplace=True)
 y = df['impact']
-# imps = len(df[df['impact'] == 1])
-# tot = len(df['impact'])
-# print('total: '+str(tot))
-# print('impacts: '+str(imps))
-# print('ratio: '+str(imps/tot))
-
-# Train a simple Random Forest to check feature importance
-rf = RandomForestClassifier(n_estimators=100, random_state=42)
-rf.fit(X, y)
-
-# Plot feature importance
-importances = rf.feature_importances_
-feature_names = X.columns
-sns.barplot(x=importances, y=feature_names)
-plt.xlabel("Feature Importance")
-plt.ylabel("Feature")
-plt.title("Feature Importance for Head Impact Detection")
-plt.show()
+imps = len(df[df['impact'] == 1])
+tot = len(df['impact'])
+print('total: '+str(tot))
+print('impacts: '+str(imps))
+print('ratio: '+str(imps/tot))
 
 X_train, X_test, y_train, y_test = get_split('./final_preprocessed_data.csv',use_alt_preprocessing)
 

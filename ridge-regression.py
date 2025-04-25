@@ -1,21 +1,35 @@
+from matplotlib import pyplot as plt
+import seaborn as sns
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import Ridge
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import RidgeCV
+from sklearn.linear_model import RidgeCV, LassoCV
 from sklearn.metrics import mean_squared_error
 
 df = pd.read_csv('./final_preprocessed_data.csv')
 df = df.replace([np.inf, -np.inf], np.nan).dropna()
 
 # Separate features (X) and target (y)
-X = df[['accelX_mean', 'accelX_var', 'accelX_max', 'accelX_min',
-       'accelY_mean', 'accelY_var', 'accelY_max', 'accelY_min', 'accelZ_mean',
-       'accelZ_var', 'accelZ_max', 'accelZ_min', 'rateX_mean', 'rateX_var',
-       'rateX_max', 'rateX_min', 'rateY_mean', 'rateY_var', 'rateY_max',
-       'rateY_min', 'rateZ_mean', 'rateZ_var', 'rateZ_max', 'rateZ_min']]
+timestamp_cols = [col for col in df.columns if 'timestamp' in col]
+X = df.drop(columns=timestamp_cols)
+X.drop(columns=['isoTimestamp','impact'],inplace=True)
 y = df['impact']
+
+# Train a simple Random Forest to check feature importance
+rf = RandomForestClassifier(n_estimators=100, random_state=42)
+rf.fit(X, y)
+
+# Plot feature importance
+importances = rf.feature_importances_
+feature_names = X.columns
+sns.barplot(x=importances, y=feature_names)
+plt.xlabel("Feature Importance")
+plt.ylabel("Feature")
+plt.title("Feature Importance for Head Impact Detection")
+plt.show()
 
 # Standardize independent variables
 scaler = StandardScaler()
@@ -46,8 +60,6 @@ print("Mean Squared Error:", mse)
 
 # # Best alpha
 # print("Best alpha:", ridge_cv.alpha_)
-
-from sklearn.linear_model import LassoCV
 
 lasso_cv = LassoCV(alphas=np.logspace(-3, 3, 10), cv=5)
 lasso_cv.fit(X_train, y_train)
