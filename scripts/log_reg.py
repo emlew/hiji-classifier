@@ -1,7 +1,18 @@
 import numpy as np
 from sklearn.model_selection import GridSearchCV, StratifiedKFold
 from sklearn.linear_model import LogisticRegression
+
+import sys
+import os
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.append(parent_dir)
+
 from tools.train_test import get_split, print_evaluation
+
+"""
+This script performs a grid search to find the best parameters for a logistic regression model. It also prints an evaluation of the model.
+"""
 
 X_train, X_test, y_train, y_test = get_split('./final_preprocessed_data.csv',use_alt_preprocessing=False)
 

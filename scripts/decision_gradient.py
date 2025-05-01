@@ -5,7 +5,17 @@ from sklearn.model_selection import GridSearchCV, StratifiedShuffleSplit
 from sklearn.metrics import classification_report, f1_score
 from sklearn.ensemble import GradientBoostingClassifier
 
+import sys
+import os
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.append(parent_dir)
+
 from tools.train_test import get_split
+
+"""
+This script performs a grid search to find the best parameters for decision tree and gradient boosting and prints an evaluation of the models.
+"""
 
 X_train, X_test, y_train, y_test = get_split('./final_preprocessed_data.csv', use_alt_preprocessing=False)
 
