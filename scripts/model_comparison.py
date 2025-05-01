@@ -39,4 +39,16 @@ X_train, X_test, y_train, y_test = get_split('./final_preprocessed_data.csv',use
 # Initialize models
 models = {
     "Logistic Regression": LogisticRegression(),
-    "Random Forest": Ran
+    "Random Forest": RandomForestClassifier(n_estimators=100, random_state=42),
+    "XGBoost": XGBClassifier(eval_metric="logloss"),
+    "SVM": SVC()
+}
+
+# Train and evaluate each model
+for name, model in models.items():
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    acc = accuracy_score(y_test, y_pred)
+    f1 = f1_score(y_test, y_pred)
+    
+    print(f"{name}: Accuracy = {acc:.4f}, F1 Score = {f1:.4f}")
