@@ -8,7 +8,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir)
 
-from scripts.cleanup import enforce_file_bounds
+from tools.cleanup import enforce_file_bounds
 
 def get_impacts():
     """
