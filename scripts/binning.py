@@ -8,7 +8,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir)
 
-from scripts.processing import get_impacts, get_interval_binned_data, iqr
+from tools.processing import get_impacts, get_interval_binned_data, iqr
 
 """
 This script generates two examples of how binning works. Each example displays unbinned data on the left and binned data on the right.

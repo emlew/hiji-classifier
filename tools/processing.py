@@ -107,6 +107,7 @@ def iqr(column):
     """
     return column.quantile(0.75) - column.quantile(0.25)
 
+# example use:
 # data_folder = "./data/raw/*.csv"
 # bin_size = "1.5s"
 # aggregates = ["mean", "var", "max", "min", "median", iqr]

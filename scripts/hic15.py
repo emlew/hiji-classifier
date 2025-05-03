@@ -10,7 +10,7 @@ parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir)
 
 from tools.cleanup import enforce_file_bounds
-from scripts.processing import get_impacts
+from tools.processing import get_impacts
 
 """
 This script creates visualizations of Head Impact Criterion (HIC) values, which describe the probability of a concussion-level impact.
