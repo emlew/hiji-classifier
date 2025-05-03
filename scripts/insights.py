@@ -2,7 +2,13 @@ import itertools
 from matplotlib import pyplot as plt
 import numpy as np
 
-from scripts.utils import get_patches, type_is_valid
+import sys
+import os
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.append(parent_dir)
+
+from tools.utils import get_patches, type_is_valid
 
 def plot_vs_time(df,type,title):
     """
